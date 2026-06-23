@@ -6,6 +6,11 @@ on:
 
 permissions:
   contents: read
+  # gitleaks-action's pull_request path reads the PR's commit list via the GitHub API.
+  # Declaring any permissions block defaults every unlisted scope to "none", so the PR
+  # scan needs this explicitly. Read-only — comments stay off (GITLEAKS_ENABLE_COMMENTS),
+  # so pull-requests: write is not required.
+  pull-requests: read
 
 jobs:
   secret-scan:
@@ -25,6 +30,9 @@ jobs:
           GITLEAKS_VERSION: "8.30.1"
           # Free for personal/public repos. GitHub Organization-OWNED repos need a free
           # GITLEAKS_LICENSE secret (from gitleaks.io) or this step fails with a license error.
+          # NOTE: GitHub does not pass non-GITHUB_TOKEN secrets to workflows triggered from
+          # forks, so on an ORG repo this step fails closed on external fork PRs. Options:
+          # run a CLI-based gitleaks scan for fork PRs, or scope the action to same-repo events.
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
           # The action posts PR comments on findings by default, which needs
           # pull-requests: write. We keep least privilege (contents: read) and let the
@@ -47,6 +55,8 @@ jobs:
         if: hashFiles('requirements.txt') != '' || hashFiles('pyproject.toml') != ''
         run: |
           python -m pip install --upgrade pip pip-audit
-          # Advisory (non-blocking) so it doesn't fail onboarding on a pre-existing
-          # baseline. Remove "|| true" to make Python deps a hard gate like npm audit.
-          pip-audit || true
+          # Bare `pip-audit` audits the runner's environment, NOT the project — target the
+          # project's declared deps explicitly. Advisory (non-blocking) so it doesn't fail
+          # onboarding on a pre-existing baseline; drop "|| true" to make it a hard gate.
+          if [ -f requirements.txt ]; then pip-audit -r requirements.txt || true; fi
+          if [ -f pyproject.toml ]; then pip-audit . || true; fi
