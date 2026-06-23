@@ -12,12 +12,12 @@ jobs:
     name: Secret scan (gitleaks)
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
         with:
           fetch-depth: 0
-      # Pin to the latest released version — check https://github.com/gitleaks/gitleaks-action
+      # v3 runs on Node 24; v2 stops working on GitHub-hosted runners after 2026-09-16.
       - name: Run gitleaks
-        uses: gitleaks/gitleaks-action@v2
+        uses: gitleaks/gitleaks-action@v3
         env:
           # Free for personal/public repos. GitHub Organization-OWNED repos need a free
           # GITLEAKS_LICENSE secret (from gitleaks.io) or this step fails with a license error.
@@ -27,9 +27,9 @@ jobs:
     name: Dependency audit
     runs-on: ubuntu-latest
     steps:
-      - uses: actions/checkout@v4
+      - uses: actions/checkout@v6
 
-      # --- Node projects ---
+      # --- Node projects --- (blocks on high/critical advisories)
       - name: npm audit
         if: hashFiles('package-lock.json') != ''
         run: npm audit --audit-level=high
@@ -39,4 +39,6 @@ jobs:
         if: hashFiles('requirements.txt') != '' || hashFiles('pyproject.toml') != ''
         run: |
           python -m pip install --upgrade pip pip-audit
-          pip-audit || true   # set to fail the build once your baseline is clean
+          # Advisory (non-blocking) so it doesn't fail onboarding on a pre-existing
+          # baseline. Remove "|| true" to make Python deps a hard gate like npm audit.
+          pip-audit || true

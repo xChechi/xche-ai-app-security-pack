@@ -2,7 +2,7 @@
 # This blocks commits that contain detected secrets, locally — before they ever hit GitHub.
 repos:
   - repo: https://github.com/gitleaks/gitleaks
-    # Pin to the latest tag — check the repo's releases.
-    rev: v8.18.0
+    # Pin to a recent tag — check the repo's releases for newer.
+    rev: v8.30.1
     hooks:
       - id: gitleaks

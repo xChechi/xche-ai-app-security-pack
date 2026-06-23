@@ -19,7 +19,7 @@ changes for secrets and blocks the commit if any are found.
 set -euo pipefail
 if command -v gitleaks >/dev/null 2>&1; then
   code=0
-  gitleaks protect --staged --no-banner || code=$?
+  gitleaks git --pre-commit --redact --staged || code=$?   # protect/detect deprecated in gitleaks v8.19
   # 0 = clean, 1 = leaks found, other = tooling error. Block only on a real finding.
   if [ "$code" -eq 1 ]; then
     echo "BLOCKED: staged changes contain a secret. Move it to an env var." >&2
@@ -39,7 +39,7 @@ Make it executable: `chmod +x scripts/secret-guard.sh`
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "if": "Bash(git commit:*)", "command": "./scripts/secret-guard.sh" }
+          { "type": "command", "if": "Bash(git commit:*)", "command": "bash ./scripts/secret-guard.sh" }
         ]
       }
     ]

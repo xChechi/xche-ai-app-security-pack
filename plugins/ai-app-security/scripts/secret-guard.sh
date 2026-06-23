@@ -9,7 +9,9 @@ set -euo pipefail
 
 if command -v gitleaks >/dev/null 2>&1; then
   code=0
-  gitleaks protect --staged --no-banner >/dev/null 2>&1 || code=$?
+  # `git --pre-commit --staged` is the current gitleaks invocation (protect/detect
+  # were deprecated in v8.19). Output suppressed; we act on the exit code only.
+  gitleaks git --pre-commit --redact --staged >/dev/null 2>&1 || code=$?
   # gitleaks: 0 = clean, 1 = leaks found, other = tooling error. Block ONLY on a
   # real finding (1) so a deprecated/removed subcommand can't false-block commits.
   if [ "$code" -eq 1 ]; then

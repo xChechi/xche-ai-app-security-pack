@@ -2,7 +2,7 @@
   "$schema": "https://json.schemastore.org/claude-code-plugin.json",
   "name": "ai-app-security",
   "description": "Security guardrails for AI-built apps: OWASP/API/LLM/MCP rules applied while building, an /audit skill for full reviews, and a hook that blocks secret commits.",
-  "version": "1.0.4",
+  "version": "1.0.5",
   "author": { "name": "xChe" },
   "homepage": "https://github.com/xChechi/xche-ai-app-security-pack",
   "repository": "https://github.com/xChechi/xche-ai-app-security-pack",
