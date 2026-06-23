@@ -14,12 +14,16 @@ changes for secrets and blocks the commit if any are found.
 
 ```bash
 #!/usr/bin/env bash
-# Blocks if staged changes contain secrets. Requires gitleaks installed.
+# Blocks the commit only if staged changes contain secrets. Requires gitleaks.
+# Fails OPEN on any gitleaks error (it's the weakest net; pre-commit + CI are the gates).
 set -euo pipefail
 if command -v gitleaks >/dev/null 2>&1; then
-  if ! gitleaks protect --staged --no-banner; then
+  code=0
+  gitleaks protect --staged --no-banner || code=$?
+  # 0 = clean, 1 = leaks found, other = tooling error. Block only on a real finding.
+  if [ "$code" -eq 1 ]; then
     echo "BLOCKED: staged changes contain a secret. Move it to an env var." >&2
-    exit 2   # non-zero exit signals the hook to block the action
+    exit 2
   fi
 fi
 exit 0
