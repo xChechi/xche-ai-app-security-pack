@@ -78,7 +78,7 @@ If you only do one thing, install the **pre-commit hook**. The CI gate is what u
 
 If you've built an app with an AI tool and want to know it won't be the next breach headline, I do **security audits + remediation** for AI-built apps.
 
-**→ [stefannasev.dev](https://stefannasev.dev)**
+**→ [stefannasev.dev](https://stefannasev.dev)** · [LinkedIn](https://www.linkedin.com/in/stefannasev)
 
 ## Contributing
 
