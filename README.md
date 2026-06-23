@@ -42,9 +42,23 @@ The bugs are almost always the same handful: hardcoded secrets, broken access co
 This activates three things:
 - a **`secure-coding` skill** that auto-applies the security rules whenever Claude Code writes or edits auth / database / API / input / secrets / LLM-MCP code (no command needed — it triggers on the task);
 - an **`/ai-app-security:audit`** command for a full manual review of selected code or recent changes;
-- an active **secret-blocking hook** before commits. (The hook uses [gitleaks](https://github.com/gitleaks/gitleaks) if installed, and skips silently otherwise.)
+- a **best-effort secret guard** that runs when Claude Code itself makes a `git commit` (uses [gitleaks](https://github.com/gitleaks/gitleaks) if installed, skips otherwise). It's a convenience — **not** a complete gate; see the note below.
 
 > For the strongest, *always-on* coverage, also drop `CLAUDE.md` into `~/.claude/CLAUDE.md` (or `AGENTS.md` into your repo). A skill triggers when the task matches; `CLAUDE.md` is in context on **every** turn. Use both.
+
+### How the secret nets actually layer (honest version)
+
+The plugin's secret guard is a **best-effort** check that runs when *Claude Code itself* makes a `git commit`. It is **not** a complete gate: it doesn't cover commits from your own terminal or IDE, and it can miss `git commit -am` (those changes aren't staged yet at hook time). Treat it as early convenience, not a guarantee.
+
+The three nets are **not equal** — install all of them, but know what each does:
+
+| Net | Covers | Role |
+|-----|--------|------|
+| **pre-commit hook** (`.pre-commit-config.yaml`) | *all* local commits, any tool; catches `-am` (runs at the real commit moment) | **Primary local gate** |
+| **CI workflow** (`.github/workflows/security.yml`) | every push/PR; can't be bypassed or skipped | **Hard backstop** |
+| **Claude Code plugin hook** | only commits Claude Code itself runs | Convenience — catches the common "Claude committed a key" case early |
+
+If you only do one thing, install the **pre-commit hook**. The CI gate is what ultimately stops a secret reaching the remote.
 
 ## Or use the files directly (any tool, 2 minutes)
 
