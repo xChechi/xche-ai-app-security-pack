@@ -3,23 +3,29 @@ name: security
 on:
   push:
   pull_request:
+  # Scheduled + manual runs do a FULL-HISTORY gitleaks scan. push/pull_request events only
+  # scan the event's commit range, so secrets already in the history (e.g. when this pack is
+  # dropped into an existing repo) would never be caught without this.
+  schedule:
+    - cron: "0 6 * * 1"   # weekly, Monday 06:00 UTC
+  workflow_dispatch:
 
-permissions:
-  contents: read
-  # gitleaks-action's pull_request path reads the PR's commit list via the GitHub API.
-  # Declaring any permissions block defaults every unlisted scope to "none", so the PR
-  # scan needs this explicitly. Read-only — comments stay off (GITLEAKS_ENABLE_COMMENTS),
-  # so pull-requests: write is not required.
-  pull-requests: read
+# No workflow-level permissions block: each job declares only the scopes it needs.
 
 jobs:
   secret-scan:
     name: Secret scan (gitleaks)
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
+      # gitleaks-action's pull_request path reads the PR's commit list via the GitHub API.
+      # Read-only — comments stay off (GITLEAKS_ENABLE_COMMENTS), so write is not required.
+      pull-requests: read
     steps:
       - uses: actions/checkout@v6
         with:
-          fetch-depth: 0
+          fetch-depth: 0            # full history (push/PR range scan + the scheduled full scan)
+          persist-credentials: false
       # v3 runs on Node 24; v2 stops working on GitHub-hosted runners after 2026-09-16.
       - name: Run gitleaks
         uses: gitleaks/gitleaks-action@v3
@@ -30,27 +36,34 @@ jobs:
           GITLEAKS_VERSION: "8.30.1"
           # Free for personal/public repos. GitHub Organization-OWNED repos need a free
           # GITLEAKS_LICENSE secret (from gitleaks.io) or this step fails with a license error.
-          # NOTE: GitHub does not pass non-GITHUB_TOKEN secrets to workflows triggered from
-          # forks, so on an ORG repo this step fails closed on external fork PRs. Options:
-          # run a CLI-based gitleaks scan for fork PRs, or scope the action to same-repo events.
+          # NOTE: GitHub does not pass non-GITHUB_TOKEN secrets to fork-triggered runs, so on an
+          # ORG repo this step fails closed on external fork PRs. If that affects you, gate this
+          # step with `if: github.event.pull_request.head.repo.full_name == github.repository`
+          # and run the open-source gitleaks CLI (no license needed) for fork PRs.
           GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
-          # The action posts PR comments on findings by default, which needs
-          # pull-requests: write. We keep least privilege (contents: read) and let the
-          # job *block* via exit code instead of annotating, so comments stay off.
+          # The action posts PR comments on findings by default, which needs pull-requests: write.
+          # We keep least privilege and let the job *block* via exit code instead of annotating.
           GITLEAKS_ENABLE_COMMENTS: "false"
 
   dependency-audit:
     name: Dependency audit
     runs-on: ubuntu-latest
+    permissions:
+      contents: read
     steps:
       - uses: actions/checkout@v6
+        with:
+          persist-credentials: false
 
-      # --- Node projects --- (blocks on high/critical advisories)
+      # --- Node --- (blocks on high/critical advisories). Covers the npm lockfile. If your
+      # project uses pnpm or yarn, add the equivalent gated step (`pnpm audit --audit-level high`,
+      # or `yarn npm audit` on berry / `yarn audit` on classic) — omitted here because the audit
+      # syntax differs across package managers and a wrong invocation would false-fail the gate.
       - name: npm audit
-        if: hashFiles('package-lock.json') != ''
+        if: hashFiles('package-lock.json') != '' || hashFiles('npm-shrinkwrap.json') != ''
         run: npm audit --audit-level=high
 
-      # --- Python projects ---
+      # --- Python ---
       - name: pip-audit
         if: hashFiles('requirements.txt') != '' || hashFiles('pyproject.toml') != ''
         run: |
@@ -58,5 +71,9 @@ jobs:
           # Bare `pip-audit` audits the runner's environment, NOT the project — target the
           # project's declared deps explicitly. Advisory (non-blocking) so it doesn't fail
           # onboarding on a pre-existing baseline; drop "|| true" to make it a hard gate.
+          # NOTE: pip-audit resolves dependencies (which can execute build code) and on fork
+          # PRs that runs against untrusted dep files. The token here is read-only with no
+          # secrets, so blast radius is limited; add `--no-deps` if you want to skip resolution
+          # (at the cost of not auditing transitive dependencies).
           if [ -f requirements.txt ]; then pip-audit -r requirements.txt || true; fi
           if [ -f pyproject.toml ]; then pip-audit . || true; fi
