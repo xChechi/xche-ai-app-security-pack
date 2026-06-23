@@ -2,13 +2,13 @@
 
 > **Scope:** house security policy for all code Claude Code writes, edits, or reviews.
 > **Deploy as:** `~/.claude/CLAUDE.md` (global), a referenced `SECURITY.md`, or the
-> `claude-security-guidance.md` policy file used by the security-guidance plugin.
+> `reference/SECURITY.md` bundled with the **ai-app-security** plugin (read on demand by its `/ai-app-security:audit` skill).
 > **Status:** these are defaults, not suggestions. When a task conflicts with a rule,
 > **stop and flag it** — never silently bypass a control to "make it work."
 >
-> ⚠️ No ruleset is exhaustive. This is the floor. Pair it with the security-guidance
-> plugin, `/security-review`, a blocking hook + CI gate, and human review for
-> anything touching auth, money, secrets, PII, or medical data.
+> ⚠️ No ruleset is exhaustive. This is the floor. Pair it with the **ai-app-security**
+> plugin's `/ai-app-security:audit`, `/security-review`, a blocking hook + CI gate, and
+> human review for anything touching auth, money, secrets, PII, or medical data.
 
 ---
 
@@ -129,5 +129,5 @@
 ---
 
 ### Deployment notes
-- **Dilution caveat:** a very long policy can get diluted in context. Two good patterns: (a) keep this full file as `SECURITY.md` and put a short pointer + the top ~15 rules in `CLAUDE.md`; or (b) load it as the security-guidance plugin's policy file, which is purpose-built for a policy this size.
+- **Dilution caveat:** a very long policy can get diluted in context. Two good patterns: (a) keep this full file as `SECURITY.md` and put a short pointer + the top ~15 rules in `CLAUDE.md`; or (b) keep it as the plugin's `reference/SECURITY.md`, which the `/ai-app-security:audit` skill reads on demand — so the full policy never sits in always-on context.
 - **Enforcement:** rules here are advisory. For hard gates (block secret commits, block edits to auth/prod files), add a `PreToolUse` hook + a CI security gate.

@@ -4,7 +4,7 @@
 hard-block anything. To turn a must-never rule into something that **can't happen**,
 add a `PreToolUse` hook. It's the only hook that can block an action.
 
-Below is a secret-commit guard: before any `Bash` command runs, it scans staged
+Below is a secret-commit guard: when Claude runs a `git commit`, it scans the staged
 changes for secrets and blocks the commit if any are found.
 
 > ⚠️ Claude Code's hook schema evolves. Confirm the exact settings format against the
@@ -35,7 +35,7 @@ Make it executable: `chmod +x scripts/secret-guard.sh`
       {
         "matcher": "Bash",
         "hooks": [
-          { "type": "command", "command": "./scripts/secret-guard.sh" }
+          { "type": "command", "if": "Bash(git commit:*)", "command": "./scripts/secret-guard.sh" }
         ]
       }
     ]
@@ -43,12 +43,12 @@ Make it executable: `chmod +x scripts/secret-guard.sh`
 }
 ```
 
+> Note: the `matcher` filters by **tool name** (`"Bash"`); the `if` field scopes by command (here, only `git commit`). Putting `Bash(git commit:*)` in `matcher` instead would never fire.
+
 ## Layered enforcement (recommended)
 
-You now have three nets, in order of how early they catch a leak:
+Three nets — but they are **not equal**. Install all three; the bottom two are the real gates:
 
-1. **Claude Code hook** (this file) — before Claude even runs the commit command.
-2. **pre-commit** (`.pre-commit-config.yaml`) — before the commit is created locally.
-3. **CI gate** (`.github/workflows/security.yml`) — before the branch can merge.
-
-Defense in depth: a secret has to slip past all three to reach production.
+1. **pre-commit** (`.pre-commit-config.yaml`) — **primary local gate.** Covers *all* local commits regardless of tool, and catches `git commit -am` (it runs at the real commit moment).
+2. **CI gate** (`.github/workflows/security.yml`) — **hard backstop.** Runs on every push/PR and can't be bypassed; this is what ultimately stops a secret reaching the remote.
+3. **Claude Code hook** (this file) — **convenience only.** Fires just for commits Claude Code itself runs (not your terminal or IDE), and can miss `-am`. Catches the common "Claude committed a key" case early — not a guarantee.
