@@ -1,0 +1,19 @@
+{
+  "$schema": "https://json.schemastore.org/claude-code-marketplace.json",
+  "name": "xche",
+  "owner": {
+    "name": "xChe"
+  },
+  "description": "Security guardrails for AI-built apps — drop-in rules, policy, and secret-scanning hooks.",
+  "plugins": [
+    {
+      "name": "ai-app-security",
+      "source": "./plugins/ai-app-security",
+      "description": "OWASP / API / LLM / MCP security rules: a secure-coding skill that applies them while building, an /audit skill for full reviews, and a hook that blocks secret commits — for apps built with AI coding tools.",
+      "author": { "name": "xChe" },
+      "license": "MIT",
+      "category": "security",
+      "keywords": ["security", "appsec", "owasp", "llm-security", "mcp", "vibe-coding", "devsecops"]
+    }
+  ]
+}

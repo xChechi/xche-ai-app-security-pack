@@ -1,0 +1,8 @@
+# Install: pip install pre-commit  (or brew install pre-commit), then `pre-commit install`
+# This blocks commits that contain detected secrets, locally — before they ever hit GitHub.
+repos:
+  - repo: https://github.com/gitleaks/gitleaks
+    # Pin to the latest tag — check the repo's releases.
+    rev: v8.18.0
+    hooks:
+      - id: gitleaks
