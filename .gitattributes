@@ -1,0 +1,5 @@
+# Normalize line endings in the repo to LF. Critical for shell scripts: a CRLF
+# `secret-guard.sh` gets a broken `#!/usr/bin/env bash\r` shebang on Linux/macOS.
+* text=auto eol=lf
+*.sh text eol=lf
+*.png binary

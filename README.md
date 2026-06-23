@@ -35,7 +35,7 @@ The bugs are almost always the same handful: hardcoded secrets, broken access co
 ## Install as a Claude Code plugin (one command)
 
 ```shell
-/plugin marketplace add REPLACE_ME/xche-ai-app-security-pack
+/plugin marketplace add xChechi/xche-ai-app-security-pack
 /plugin install ai-app-security@xche
 ```
 
@@ -64,7 +64,7 @@ This activates three things:
 
 If you've built an app with an AI tool and want to know it won't be the next breach headline, I do **security audits + remediation** for AI-built apps.
 
-`→ [ your audit / book-a-call link ]`
+**→ [stefannasev.dev](https://stefannasev.dev)**
 
 ## Contributing
 

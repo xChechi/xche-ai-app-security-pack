@@ -18,6 +18,10 @@ jobs:
       # Pin to the latest released version — check https://github.com/gitleaks/gitleaks-action
       - name: Run gitleaks
         uses: gitleaks/gitleaks-action@v2
+        env:
+          # Free for personal/public repos. GitHub Organization-OWNED repos need a free
+          # GITLEAKS_LICENSE secret (from gitleaks.io) or this step fails with a license error.
+          GITLEAKS_LICENSE: ${{ secrets.GITLEAKS_LICENSE }}
 
   dependency-audit:
     name: Dependency audit
