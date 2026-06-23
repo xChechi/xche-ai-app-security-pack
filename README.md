@@ -15,9 +15,9 @@ Drop-in `CLAUDE.md` rules, a full OWASP / API / LLM / MCP security policy, plus 
 
 AI coding tools generate **working** code, not **secure** code. The result is now a recurring headline:
 
-- A fully AI-built social app exposed **1.5M API keys + 35k emails** within days of launch.
-- A $1M habit app had its database **publicly readable** — all 39k users exposed.
-- Studies put **40–62%** of AI-generated code as carrying at least one security flaw.
+- A vibe-coded AI social network (**Moltbook**) left its database wide open — **~1.5M API tokens and 35K emails** exposed — because the generated code skipped Row-Level Security. ([Wiz](https://www.wiz.io/blog/exposed-moltbook-database-reveals-millions-of-api-keys))
+- A viral AI-built recovery app (**Quittr**) leaked the **sensitive personal data of hundreds of thousands of users — including ~100K minors** — via a misconfigured Firebase database. ([404 Media](https://www.404media.co/viral-quittr-porn-addiction-app-exposed-the-masturbation-habits-of-hundreds-of-thousands-of-users/))
+- Independent studies keep finding a large share of AI-generated code ships insecure — **~40%** in NYU's GitHub Copilot study, **~45%** across languages in **Veracode's 2025 GenAI Code Security report**. ([NYU](https://arxiv.org/abs/2108.09293))
 
 The bugs are almost always the same handful: hardcoded secrets, broken access control, missing input validation, exposed databases, no security headers. This pack hardens your setup against exactly those.
 
